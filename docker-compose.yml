@@ -1,0 +1,9 @@
+services:
+  wheel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wheel-nginx
+    ports:
+      - "8080:80"
+    restart: unless-stopped
