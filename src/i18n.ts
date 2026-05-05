@@ -22,6 +22,9 @@ export interface T {
   spinning: string;
   spinSetupTitle: string;
   spinSetupHint: string;
+  spinSetupAmountLabel: string;
+  spinSetupInvalidAmount: string;
+  spinSetupQuick: string;
   spinSetupStart: string;
   spinSetupCancel: string;
   history: string;
@@ -51,8 +54,11 @@ export const translations: Record<Lang, T> = {
   ru: {
     spin: 'КРУТИТЬ ▶',
     spinning: 'КРУТИМ...',
-    spinSetupTitle: 'ВЫБЕРИТЕ СУММУ ПРОКРУТА',
-    spinSetupHint: 'Заглушка: сумма пока не влияет на результат',
+    spinSetupTitle: 'СУММА ПРОКРУТА',
+    spinSetupHint: 'Введите сумму в сумах. Она не влияет на выпадение приза.',
+    spinSetupAmountLabel: 'Сумма (сум)',
+    spinSetupInvalidAmount: 'Введите положительное число',
+    spinSetupQuick: 'Быстрый выбор',
     spinSetupStart: 'НАЧАТЬ ПРОКРУТ',
     spinSetupCancel: 'ОТМЕНА',
     history: 'ИСТОРИЯ',
@@ -80,8 +86,11 @@ export const translations: Record<Lang, T> = {
   tg: {
     spin: 'ГАРДОНДАН ▶',
     spinning: 'МЕГАРДАД...',
-    spinSetupTitle: 'МАБЛАҒИ ГАРДОНДАНРО ИНТИХОБ КУНЕД',
-    spinSetupHint: 'Заглушка: маблағ ҳоло ба натиҷа таъсир намекунад',
+    spinSetupTitle: 'МАБЛАҒИ ГАРДОНДАН',
+    spinSetupHint: 'Маблағро бо сомонӣ ворид кунед. Ба натиҷа таъсир намекунад.',
+    spinSetupAmountLabel: 'Маблағ (сомонӣ)',
+    spinSetupInvalidAmount: 'Рақами дуруст ворид кунед',
+    spinSetupQuick: 'Интихоби зуд',
     spinSetupStart: 'ОҒОЗИ ГАРДОНДАН',
     spinSetupCancel: 'БЕКОР КАРДАН',
     history: 'ТАЪРИХ',

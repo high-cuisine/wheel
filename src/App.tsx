@@ -5,7 +5,7 @@ import HiddenQueue from './components/HiddenQueue';
 import AdminPanel from './components/AdminPanel';
 import History from './components/History';
 import LangContext from './LangContext';
-import { Lang, T, convertAmount, translations, wheelLabel } from './i18n';
+import { Lang, T, convertAmount, translations, UZS_PER_TJS, wheelLabel } from './i18n';
 
 const DEFAULT_PRIZES: Prize[] = [
   { id: 'p1', label: '5 млн',  value: 5_000_000,  color: '#1d4ed8', count: 1 },
@@ -28,6 +28,19 @@ function buildSegments(prizes: Prize[], lang: Lang, lossLabel: string): Segment[
 function formatSum(uzs: number, lang: Lang, currency: string): string {
   const amount = convertAmount(uzs, lang);
   return new Intl.NumberFormat('ru-RU').format(amount) + ' ' + currency;
+}
+
+function displayAmountFromUzs(uzs: number, lang: Lang): string {
+  const v = convertAmount(uzs, lang);
+  return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(v);
+}
+
+function parseUserAmountToUzs(raw: string, lang: Lang): number | null {
+  const trimmed = raw.replace(/\s/g, '').replace(',', '.').trim();
+  if (!trimmed) return null;
+  const n = Number(trimmed);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return lang === 'tg' ? Math.round(n * UZS_PER_TJS) : Math.round(n);
 }
 
 function loadPrizes(): Prize[] {
@@ -207,15 +220,33 @@ function SpinSetupModal({
   selectedAmount,
   onSelectAmount,
   onClose,
-  onStart,
+  onConfirmStake,
 }: {
   lang: Lang;
   tr: T;
   selectedAmount: number;
   onSelectAmount: (value: number) => void;
   onClose: () => void;
-  onStart: () => void;
+  onConfirmStake: (stakeUzs: number) => void;
 }) {
+  const [inputStr, setInputStr] = useState(() => displayAmountFromUzs(selectedAmount, lang));
+  const [inputError, setInputError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setInputStr(displayAmountFromUzs(selectedAmount, lang));
+    setInputError(null);
+  }, [lang, selectedAmount]);
+
+  const handleStart = () => {
+    const uzs = parseUserAmountToUzs(inputStr, lang);
+    if (uzs === null) {
+      setInputError(tr.spinSetupInvalidAmount);
+      return;
+    }
+    setInputError(null);
+    onConfirmStake(uzs);
+  };
+
   return (
     <div
       onClick={onClose}
@@ -229,6 +260,7 @@ function SpinSetupModal({
         background: 'rgba(0,0,0,0.62)',
         backdropFilter: 'blur(7px)',
         padding: '0 16px',
+        animation: 'fadeInSpinSetup 0.25s ease',
       }}
     >
       <div
@@ -266,6 +298,79 @@ function SpinSetupModal({
         >
           {tr.spinSetupHint}
         </div>
+        <label
+          htmlFor="spin-stake-input"
+          style={{
+            display: 'block',
+            fontFamily: "'Rajdhani', sans-serif",
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'rgba(255,215,0,0.85)',
+            marginBottom: 8,
+            letterSpacing: 0.5,
+          }}
+        >
+          {tr.spinSetupAmountLabel}
+        </label>
+        <input
+          id="spin-stake-input"
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          autoFocus
+          value={inputStr}
+          onChange={e => {
+            setInputStr(e.target.value);
+            setInputError(null);
+          }}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleStart();
+            }
+          }}
+          style={{
+            width: '100%',
+            padding: '14px 16px',
+            borderRadius: 12,
+            border: inputError
+              ? '1px solid rgba(248,113,113,0.75)'
+              : '1px solid rgba(255,215,0,0.35)',
+            background: 'rgba(255,255,255,0.06)',
+            color: '#ffffff',
+            fontFamily: "'Rajdhani', sans-serif",
+            fontSize: 20,
+            fontWeight: 700,
+            outline: 'none',
+            boxSizing: 'border-box',
+            boxShadow: inputError ? '0 0 20px rgba(248,113,113,0.15)' : 'none',
+          }}
+        />
+        {inputError ? (
+          <div
+            style={{
+              marginTop: 8,
+              fontFamily: "'Rajdhani', sans-serif",
+              fontSize: 13,
+              color: '#f87171',
+            }}
+          >
+            {inputError}
+          </div>
+        ) : null}
+        <div
+          style={{
+            marginTop: 18,
+            marginBottom: 10,
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: 16,
+            letterSpacing: 1.5,
+            color: 'rgba(255,255,255,0.4)',
+            textAlign: 'center',
+          }}
+        >
+          {tr.spinSetupQuick}
+        </div>
         <div
           style={{
             display: 'grid',
@@ -278,7 +383,12 @@ function SpinSetupModal({
             return (
               <button
                 key={amount}
-                onClick={() => onSelectAmount(amount)}
+                type="button"
+                onClick={() => {
+                  onSelectAmount(amount);
+                  setInputStr(displayAmountFromUzs(amount, lang));
+                  setInputError(null);
+                }}
                 style={{
                   padding: '11px 12px',
                   borderRadius: 12,
@@ -300,6 +410,7 @@ function SpinSetupModal({
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           <button
+            type="button"
             onClick={onClose}
             style={{
               flex: 1,
@@ -317,7 +428,8 @@ function SpinSetupModal({
             {tr.spinSetupCancel}
           </button>
           <button
-            onClick={onStart}
+            type="button"
+            onClick={handleStart}
             style={{
               flex: 1.2,
               padding: '12px 14px',
@@ -335,6 +447,7 @@ function SpinSetupModal({
           </button>
         </div>
       </div>
+      <style>{`@keyframes fadeInSpinSetup { from { opacity: 0 } to { opacity: 1 } }`}</style>
     </div>
   );
 }
@@ -397,6 +510,7 @@ export default function App() {
 
   const segments = buildSegments(prizes, lang, tr.loss);
   const wheelRef = useRef<WheelHandle>(null);
+  const stakeUzsForRoundRef = useRef<number>(SPIN_SETUP_AMOUNTS[0]);
 
   useEffect(() => {
     localStorage.setItem('wheel_prizes_v3', JSON.stringify(prizes));
@@ -457,6 +571,7 @@ export default function App() {
         value: seg.value,
         color: seg.color,
         timestamp: Date.now(),
+        stakeUzs: stakeUzsForRoundRef.current,
       };
       setHistory(h => [entry, ...h].slice(0, 50));
       setResult({ label: seg.label, value: seg.value, color: seg.color });
@@ -609,7 +724,9 @@ export default function App() {
             selectedAmount={spinAmount}
             onSelectAmount={setSpinAmount}
             onClose={() => setShowSpinSetup(false)}
-            onStart={() => {
+            onConfirmStake={stakeUzs => {
+              stakeUzsForRoundRef.current = stakeUzs;
+              setSpinAmount(stakeUzs);
               setShowSpinSetup(false);
               startSpin();
             }}

@@ -1,5 +1,6 @@
 import { HistoryEntry } from '../types';
 import { useLang } from '../LangContext';
+import { convertAmount } from '../i18n';
 
 interface HistoryProps {
   entries: HistoryEntry[];
@@ -7,7 +8,7 @@ interface HistoryProps {
 }
 
 export default function History({ entries, compact }: HistoryProps) {
-  const { T } = useLang();
+  const { lang, T } = useLang();
   if (compact) {
     return (
       <div
@@ -45,7 +46,11 @@ export default function History({ entries, compact }: HistoryProps) {
           {entries.slice(0, 12).map((entry, idx) => (
             <div
               key={entry.id ?? idx}
-              title={entry.label}
+              title={
+                entry.stakeUzs != null
+                  ? `${new Intl.NumberFormat('ru-RU').format(convertAmount(entry.stakeUzs, lang))} ${T.currency} · ${entry.label}`
+                  : entry.label
+              }
               style={{
                 minWidth: 34,
                 width: 34,
@@ -145,7 +150,13 @@ export default function History({ entries, compact }: HistoryProps) {
           return (
             <div
               key={idx}
-              title={entry ? entry.label : ''}
+              title={
+                entry && entry.stakeUzs != null
+                  ? `${new Intl.NumberFormat('ru-RU').format(convertAmount(entry.stakeUzs, lang))} ${T.currency} · ${entry.label}`
+                  : entry
+                    ? entry.label
+                    : ''
+              }
               style={{
                 width: 36,
                 height: 36,

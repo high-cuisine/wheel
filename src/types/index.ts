@@ -19,4 +19,6 @@ export interface HistoryEntry {
   value: number;
   color: string;
   timestamp: number;
+  /** Сумма прокрута в узбекских сумах (для отображения / подсказок) */
+  stakeUzs?: number;
 }
