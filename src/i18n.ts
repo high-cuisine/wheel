@@ -20,6 +20,10 @@ export function wheelLabel(uzs: number, lang: Lang): string {
 export interface T {
   spin: string;
   spinning: string;
+  spinSetupTitle: string;
+  spinSetupHint: string;
+  spinSetupStart: string;
+  spinSetupCancel: string;
   history: string;
   lastRound: string;
   win: string;
@@ -47,6 +51,10 @@ export const translations: Record<Lang, T> = {
   ru: {
     spin: 'КРУТИТЬ ▶',
     spinning: 'КРУТИМ...',
+    spinSetupTitle: 'ВЫБЕРИТЕ СУММУ ПРОКРУТА',
+    spinSetupHint: 'Заглушка: сумма пока не влияет на результат',
+    spinSetupStart: 'НАЧАТЬ ПРОКРУТ',
+    spinSetupCancel: 'ОТМЕНА',
     history: 'ИСТОРИЯ',
     lastRound: 'ПОСЛЕДНИЙ РАУНД',
     win: 'ПОБЕДА!',
@@ -72,6 +80,10 @@ export const translations: Record<Lang, T> = {
   tg: {
     spin: 'ГАРДОНДАН ▶',
     spinning: 'МЕГАРДАД...',
+    spinSetupTitle: 'МАБЛАҒИ ГАРДОНДАНРО ИНТИХОБ КУНЕД',
+    spinSetupHint: 'Заглушка: маблағ ҳоло ба натиҷа таъсир намекунад',
+    spinSetupStart: 'ОҒОЗИ ГАРДОНДАН',
+    spinSetupCancel: 'БЕКОР КАРДАН',
     history: 'ТАЪРИХ',
     lastRound: 'ДАВРАИ ОХИР',
     win: 'БУРДЕД!',

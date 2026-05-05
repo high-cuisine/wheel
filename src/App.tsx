@@ -199,6 +199,146 @@ function ResultModal({
   );
 }
 
+const SPIN_SETUP_AMOUNTS = [100_000, 500_000, 1_000_000, 5_000_000];
+
+function SpinSetupModal({
+  lang,
+  tr,
+  selectedAmount,
+  onSelectAmount,
+  onClose,
+  onStart,
+}: {
+  lang: Lang;
+  tr: T;
+  selectedAmount: number;
+  onSelectAmount: (value: number) => void;
+  onClose: () => void;
+  onStart: () => void;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 250,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.62)',
+        backdropFilter: 'blur(7px)',
+        padding: '0 16px',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%',
+          maxWidth: 420,
+          background: 'rgba(8,2,25,0.97)',
+          border: '1px solid rgba(255,215,0,0.35)',
+          borderRadius: 20,
+          padding: '26px 24px 20px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: 28,
+            letterSpacing: 2,
+            color: '#ffd700',
+            textAlign: 'center',
+          }}
+        >
+          {tr.spinSetupTitle}
+        </div>
+        <div
+          style={{
+            textAlign: 'center',
+            color: 'rgba(255,255,255,0.55)',
+            marginTop: 6,
+            marginBottom: 16,
+            fontFamily: "'Rajdhani', sans-serif",
+            fontSize: 14,
+          }}
+        >
+          {tr.spinSetupHint}
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: 10,
+          }}
+        >
+          {SPIN_SETUP_AMOUNTS.map(amount => {
+            const isActive = amount === selectedAmount;
+            return (
+              <button
+                key={amount}
+                onClick={() => onSelectAmount(amount)}
+                style={{
+                  padding: '11px 12px',
+                  borderRadius: 12,
+                  border: isActive
+                    ? '1px solid rgba(255,215,0,0.8)'
+                    : '1px solid rgba(255,255,255,0.12)',
+                  background: isActive ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.03)',
+                  color: isActive ? '#fff4be' : 'rgba(255,255,255,0.8)',
+                  fontFamily: "'Rajdhani', sans-serif",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {formatSum(amount, lang, tr.currency)}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          <button
+            onClick={onClose}
+            style={{
+              flex: 1,
+              padding: '12px 14px',
+              borderRadius: 12,
+              border: '1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(255,255,255,0.05)',
+              color: 'rgba(255,255,255,0.75)',
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: 18,
+              letterSpacing: 1.5,
+              cursor: 'pointer',
+            }}
+          >
+            {tr.spinSetupCancel}
+          </button>
+          <button
+            onClick={onStart}
+            style={{
+              flex: 1.2,
+              padding: '12px 14px',
+              borderRadius: 12,
+              border: 'none',
+              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%)',
+              color: '#fff',
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: 18,
+              letterSpacing: 1.5,
+              cursor: 'pointer',
+            }}
+          >
+            {tr.spinSetupStart}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LangButton({ lang, onToggle }: { lang: Lang; onToggle: () => void }) {
   const [hovered, setHovered] = useState(false);
   const tr = translations[lang];
@@ -248,6 +388,8 @@ export default function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [result, setResult] = useState<{ label: string; value: number; color: string } | null>(null);
   const [lang, setLang] = useState<Lang>(loadLang);
+  const [showSpinSetup, setShowSpinSetup] = useState(false);
+  const [spinAmount, setSpinAmount] = useState<number>(SPIN_SETUP_AMOUNTS[0]);
 
   const displaySize = useDisplaySize();
   const isMobile = displaySize < 480;
@@ -277,7 +419,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  const handleSpin = useCallback(() => {
+  const startSpin = useCallback(() => {
     if (isSpinning || !wheelRef.current) return;
 
     let targetIndex: number;
@@ -300,6 +442,11 @@ export default function App() {
     setIsSpinning(true);
     wheelRef.current.spin(targetIndex);
   }, [isSpinning, queue, segments]);
+
+  const handleSpin = useCallback(() => {
+    if (isSpinning) return;
+    setShowSpinSetup(true);
+  }, [isSpinning]);
 
   const handleSpinEnd = useCallback(
     (segmentIndex: number) => {
@@ -453,6 +600,20 @@ export default function App() {
 
         {result && (
           <ResultModal result={result} tr={tr} lang={lang} onClose={() => setResult(null)} />
+        )}
+
+        {showSpinSetup && (
+          <SpinSetupModal
+            lang={lang}
+            tr={tr}
+            selectedAmount={spinAmount}
+            onSelectAmount={setSpinAmount}
+            onClose={() => setShowSpinSetup(false)}
+            onStart={() => {
+              setShowSpinSetup(false);
+              startSpin();
+            }}
+          />
         )}
       </div>
     </LangContext.Provider>
